@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --azul:#1d4ed8; --azul-esc:#1e3a8a; --azul-claro:#eff6ff;
+    --verde:#15803d; --verde-claro:#ecfdf5; --amarelo:#b45309; --amarelo-claro:#fffbeb;
+    --vermelho:#b91c1c; --vermelho-claro:#fef2f2;
+    --texto:#1f2937; --suave:#6b7280; --borda:#d1d5db; --fundo:#f3f4f6; --branco:#fff;
+    --raio:12px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--texto);background:var(--fundo);font-size:17px;line-height:1.45}
+  header{background:var(--azul-esc);color:#fff;padding:20px 16px}
+  header .in{max-width:760px;margin:0 auto}
+  header h1{margin:0;font-size:1.35rem;line-height:1.25}
+  header p{margin:6px 0 0;opacity:.9;font-size:.95rem}
+  main{max-width:760px;margin:0 auto;padding:16px}
+  main.largo{max-width:1100px}
+  header.largo .in{max-width:1100px}
+  .card{background:var(--branco);border-radius:var(--raio);padding:18px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+  .card h2{margin:0 0 12px;font-size:1.1rem;color:var(--azul-esc)}
+  label{display:block;font-weight:600;margin:12px 0 4px;font-size:.95rem}
+  label .opc{font-weight:400;color:var(--suave)}
+  input[type=text],input[type=tel],input[type=number],input[type=password],textarea,select{
+    width:100%;padding:12px;border:1.5px solid var(--borda);border-radius:10px;font:inherit;background:#fff;color:inherit}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--azul);box-shadow:0 0 0 3px rgba(29,78,216,.15)}
+  textarea{min-height:90px;resize:vertical}
+  .linha{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+  .linha3{display:grid;grid-template-columns:2fr 1fr;gap:0 12px}
+  @media (max-width:560px){.linha,.linha3{grid-template-columns:1fr}}
+  .ajuda{font-size:.85rem;color:var(--suave);margin-top:4px}
+  .msg-cep{font-size:.88rem;margin-top:6px}
+  .msg-cep.erro{color:var(--vermelho)} .msg-cep.ok{color:var(--verde)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .chip{display:flex;align-items:center;gap:6px;border:1.5px solid var(--borda);border-radius:999px;padding:8px 12px;cursor:pointer;font-weight:500;font-size:.92rem;background:#fff;margin:0}
+  .chip input{width:18px;height:18px;margin:0}
+  .chip:has(input:checked){border-color:var(--azul);background:var(--azul-claro)}
+  .cat{border:2px solid var(--borda);border-radius:var(--raio);margin-top:10px;overflow:hidden;transition:border-color .15s}
+  .cat.ativa{border-color:var(--azul)}
+  .cat>label{display:flex;align-items:center;gap:12px;margin:0;padding:14px;cursor:pointer;font-size:1rem}
+  .cat.ativa>label{background:var(--azul-claro)}
+  .cat>label input{width:22px;height:22px;margin:0;flex:none}
+  .cat .ico{font-size:1.5rem;flex:none}
+  .cat .sub{display:block;font-weight:400;font-size:.85rem;color:var(--suave)}
+  .cat .det{display:none;padding:0 14px 14px}
+  .cat.ativa .det{display:block}
+  .consent{display:flex;gap:10px;align-items:flex-start;font-weight:400;font-size:.92rem;margin-top:4px}
+  .consent input{width:22px;height:22px;margin:2px 0 0;flex:none}
+  button{font:inherit;cursor:pointer;border:none;border-radius:10px;padding:12px 18px;font-weight:600}
+  .btn{background:var(--azul);color:#fff}
+  .btn:hover{background:var(--azul-esc)}
+  .btn:disabled{opacity:.6;cursor:wait}
+  .btn-sec{background:#fff;color:var(--azul);border:1.5px solid var(--azul)}
+  .btn-ok{background:var(--verde);color:#fff}
+  .btn-peq{padding:7px 12px;font-size:.88rem}
+  .btn-grande{width:100%;padding:16px;font-size:1.1rem}
+  .alerta{padding:12px 14px;border-radius:10px;margin:12px 0;font-size:.95rem}
+  .alerta.erro{background:var(--vermelho-claro);color:var(--vermelho);border:1px solid #fecaca}
+  .alerta.aviso{background:var(--amarelo-claro);color:var(--amarelo);border:1px solid #fde68a}
+  .alerta.ok{background:var(--verde-claro);color:var(--verde);border:1px solid #a7f3d0}
+  .sucesso{text-align:center;padding:30px 18px}
+  .sucesso .grande{font-size:3rem}
+  .sucesso .prot{font-size:2rem;font-weight:800;color:var(--azul-esc);letter-spacing:2px;margin:6px 0 14px}
+  footer{max-width:760px;margin:0 auto;padding:8px 16px 30px;font-size:.85rem;color:var(--suave);text-align:center}
+  footer a{color:var(--suave)}
+  .oculto{display:none!important}
+
+  /* Área de entregas */
+  .resumo{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+  .num{background:var(--azul-claro);border-radius:10px;padding:12px}
+  .num b{display:block;font-size:1.6rem;color:var(--azul-esc)}
+  .num span{font-size:.85rem;color:var(--suave)}
+  .filtros{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;align-items:end}
+  .filtros label{margin-top:0}
+  .barra{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0}
+  .barra .esp{flex:1}
+  .lista{display:flex;flex-direction:column;gap:10px}
+  .item{border:1.5px solid var(--borda);border-radius:10px;padding:12px;display:grid;grid-template-columns:auto 1fr;gap:12px;background:#fff}
+  .item.sel{border-color:var(--azul);background:#f8fbff}
+  .item>input{width:22px;height:22px;margin-top:2px}
+  .item .top{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+  .item .nome{font-weight:700}
+  .item .end{font-size:.92rem;color:#374151;margin-top:2px}
+  .item .nec{font-size:.9rem;margin-top:6px}
+  .item .nec div{margin-top:2px}
+  .tag{display:inline-block;font-size:.75rem;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--fundo);color:#374151}
+  .tag.Pendente{background:var(--amarelo-claro);color:var(--amarelo)}
+  .tag.em-rota{background:var(--azul-claro);color:var(--azul)}
+  .tag.Entregue{background:var(--verde-claro);color:var(--verde)}
+  .tag.Cancelado{background:#eee;color:#666}
+  .tag.prio{background:#fdf2f8;color:#9d174d}
+  .tag.aprox{background:#f5f3ff;color:#6d28d9}
+  .tag.semloc{background:var(--vermelho-claro);color:var(--vermelho)}
+  .acoes-item{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .acoes-item a{font-size:.85rem;color:var(--azul)}
+  .viagem{border:2px solid var(--azul);border-radius:var(--raio);padding:14px;margin-top:14px}
+  .viagem h3{margin:0;font-size:1.05rem;color:var(--azul-esc)}
+  .viagem .info{color:var(--suave);font-size:.9rem;margin:4px 0 10px}
+  .viagem ol{margin:10px 0;padding-left:0;list-style:none;counter-reset:p}
+  .viagem li{counter-increment:p;padding:10px 0 10px 44px;border-top:1px solid #e5e7eb;position:relative;font-size:.93rem}
+  .viagem li::before{content:counter(p);position:absolute;left:0;top:10px;width:30px;height:30px;border-radius:50%;background:var(--azul);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:.9rem}
+  .viagem li.partida::before{content:"★";background:var(--verde)}
+  .viagem li.partida{counter-increment:none}
+  .links{display:flex;flex-wrap:wrap;gap:8px}
+  .links a{display:inline-block;background:var(--verde);color:#fff;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:600;font-size:.92rem}
+  .carregando{color:var(--suave);padding:20px;text-align:center}
+  .login{max-width:380px;margin:40px auto}
+  @media print{
+    header,footer,.nao-imprimir{display:none!important}
+    body{background:#fff;font-size:12pt}
+    .card{box-shadow:none;padding:0}
+    .viagem{break-inside:avoid-page;border:1px solid #999}
+  }
+</style>
+</head>
+<body>
+
+<!-- ======================= CADASTRO ======================= -->
+<div id="pg-cadastro" class="oculto">
+  <header><div class="in">
+    <h1 id="tit-campanha">Ajuda às famílias atingidas pelas chuvas</h1>
+    <p id="sub-campanha"></p>
+  </div></header>
+
+  <main>
+    <form id="form" novalidate>
+      <div class="card">
+        <h2>1. Seus dados</h2>
+        <label for="nome">Nome completo</label>
+        <input type="text" id="nome" autocomplete="name" required>
+        <label for="telefone">Telefone ou WhatsApp</label>
+        <input type="tel" id="telefone" inputmode="numeric" placeholder="(00) 00000-0000" autocomplete="tel" required>
+        <div class="linha">
+          <div>
+            <label for="pessoas">Quantas pessoas moram na casa? <span class="opc">(opcional)</span></label>
+            <input type="number" id="pessoas" min="1" max="50" inputmode="numeric">
+          </div>
+        </div>
+        <label>Na casa tem: <span class="opc">(opcional — ajuda a priorizar)</span></label>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" name="prio" value="Bebê/criança pequena"> Bebê ou criança pequena</label>
+          <label class="chip"><input type="checkbox" name="prio" value="Idoso"> Idoso</label>
+          <label class="chip"><input type="checkbox" name="prio" value="Gestante"> Gestante</label>
+          <label class="chip"><input type="checkbox" name="prio" value="Pessoa com deficiência/acamada"> Pessoa com deficiência ou acamada</label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>2. Endereço para entrega</h2>
+        <div class="linha">
+          <div>
+            <label for="cep">CEP</label>
+            <input type="text" id="cep" inputmode="numeric" placeholder="00000-000" maxlength="9" required>
+          </div>
+        </div>
+        <div id="msg-cep" class="msg-cep"></div>
+        <div class="linha3">
+          <div><label for="rua">Rua</label><input type="text" id="rua" autocomplete="address-line1" required></div>
+          <div><label for="numero">Número</label><input type="text" id="numero" inputmode="numeric" placeholder="ou s/n" required></div>
+        </div>
+        <div class="linha">
+          <div><label for="complemento">Complemento <span class="opc">(opcional)</span></label><input type="text" id="complemento" placeholder="casa 2, apto, fundos..."></div>
+          <div><label for="bairro">Bairro</label><input type="text" id="bairro" required></div>
+        </div>
+        <div id="campo-cidade" class="oculto">
+          <label for="cidade">Cidade</label>
+          <input type="text" id="cidade" autocomplete="address-level2">
+        </div>
+        <label for="referencia">Ponto de referência <span class="opc">(opcional)</span></label>
+        <input type="text" id="referencia" placeholder="perto da igreja, portão azul...">
+        <div class="ajuda">Se a rua estiver bloqueada, escreva aqui por onde dá para chegar.</div>
+      </div>
+
+      <div class="card">
+        <h2>3. Do que vocês precisam?</h2>
+        <div class="ajuda" style="margin-top:-6px">Marque uma ou mais opções e escreva o que precisa, com a quantidade.</div>
+
+        <div class="cat" data-cat="higiene">
+          <label><input type="checkbox"><span class="ico">🧼</span><span>Higiene e limpeza<span class="sub">sabonete, fralda, absorvente, escova, água sanitária...</span></span></label>
+          <div class="det"><textarea id="higiene" placeholder="Ex.: 2 pacotes de fralda tamanho G, 4 sabonetes, 1 água sanitária"></textarea></div>
+        </div>
+        <div class="cat" data-cat="roupas">
+          <label><input type="checkbox"><span class="ico">👕</span><span>Roupas e calçados<span class="sub">informe tamanhos e para quem</span></span></label>
+          <div class="det"><textarea id="roupas" placeholder="Ex.: roupas para menina de 6 anos (tam. 6), 1 par de tênis nº 38, agasalho adulto G"></textarea></div>
+        </div>
+        <div class="cat" data-cat="alimentos">
+          <label><input type="checkbox"><span class="ico">🍚</span><span>Alimentos e água<span class="sub">cesta básica, leite, água potável...</span></span></label>
+          <div class="det"><textarea id="alimentos" placeholder="Ex.: 1 cesta básica, 6 litros de leite, água potável. Restrições: diabético, sem lactose..."></textarea></div>
+        </div>
+        <div class="cat" data-cat="casa">
+          <label><input type="checkbox"><span class="ico">🛏️</span><span>Itens de casa<span class="sub">colchão, cobertor, panelas, móveis, eletrodomésticos...</span></span></label>
+          <div class="det"><textarea id="casa" placeholder="Ex.: 2 colchões de solteiro, 1 de casal, 3 cobertores, panelas, fogão"></textarea></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <label class="consent"><input type="checkbox" id="consentimento">
+          <span>Autorizo que meus dados sejam usados pelos voluntários somente para organizar e entregar as doações.</span></label>
+        <div id="erro-form" class="alerta erro oculto"></div>
+        <button type="submit" class="btn btn-grande" id="btn-enviar" style="margin-top:14px">Enviar cadastro</button>
+      </div>
+    </form>
+
+    <div id="sucesso" class="card sucesso oculto">
+      <div class="grande">✅</div>
+      <h2 style="color:var(--verde);font-size:1.3rem">Cadastro recebido!</h2>
+      <p>Anote o número do seu protocolo:</p>
+      <div class="prot" id="num-protocolo">0000</div>
+      <p class="ajuda" style="font-size:.95rem">Os voluntários vão organizar as entregas e podem entrar em contato pelo telefone informado.</p>
+      <button class="btn-sec" id="btn-novo">Fazer outro cadastro</button>
+    </div>
+  </main>
+  <footer>
+    <div id="contato"></div>
+    <div style="margin-top:10px"><a id="link-entregas" href="#">Área de entregas (voluntários)</a></div>
+  </footer>
+</div>
+
+<!-- ======================= ENTREGAS ======================= -->
+<div id="pg-entregas" class="oculto">
+  <header class="largo"><div class="in">
+    <h1>Área de entregas</h1>
+    <p id="sub-entregas">Cadastros, organização e rotas de entrega</p>
+  </div></header>
+
+  <main class="largo">
+    <div id="tela-login" class="card login">
+      <h2>Entrar</h2>
+      <form id="form-login">
+        <label for="senha">Senha dos voluntários</label>
+        <input type="password" id="senha" autocomplete="current-password" required>
+        <div id="erro-login" class="alerta erro oculto"></div>
+        <button class="btn btn-grande" style="margin-top:14px" id="btn-login">Entrar</button>
+      </form>
+      <p class="ajuda" style="margin-top:14px"><a id="link-cadastro" href="#">← Voltar ao cadastro</a></p>
+    </div>
+
+    <div id="tela-painel" class="oculto">
+      <div class="card nao-imprimir">
+        <div class="barra" style="margin-top:0">
+          <h2 style="margin:0">Resumo</h2><span class="esp"></span>
+          <button class="btn-sec btn-peq" id="btn-atualizar">↻ Atualizar</button>
+          <button class="btn-sec btn-peq" id="btn-sair">Sair</button>
+        </div>
+        <div class="resumo" id="resumo"></div>
+      </div>
+
+      <div class="card nao-imprimir">
+        <h2>Cadastros</h2>
+        <div class="filtros">
+          <div><label for="f-status">Situação</label>
+            <select id="f-status"><option value="Pendente">Pendentes</option><option value="Em rota">Em rota</option><option value="Entregue">Entregues</option><option value="Cancelado">Cancelados</option><option value="">Todas</option></select></div>
+          <div><label for="f-cat">Categoria</label>
+            <select id="f-cat"><option value="">Todas</option><option>Higiene</option><option>Roupas</option><option>Alimentos</option><option>Itens de casa</option></select></div>
+          <div id="box-cidade" class="oculto"><label for="f-cidade">Cidade</label><select id="f-cidade"><option value="">Todas</option></select></div>
+          <div><label for="f-bairro">Bairro</label><select id="f-bairro"><option value="">Todos</option></select></div>
+          <div><label for="f-busca">Buscar</label><input type="text" id="f-busca" placeholder="nome, telefone, protocolo, item..."></div>
+        </div>
+        <div class="barra">
+          <label class="chip" style="margin:0"><input type="checkbox" id="sel-todos"> Selecionar todos da lista</label>
+          <span id="contagem" class="ajuda" style="margin:0"></span>
+          <span class="esp"></span>
+          <select id="novo-status" style="width:auto;padding:8px">
+            <option value="">Mudar situação dos selecionados…</option>
+            <option>Pendente</option><option>Em rota</option><option>Entregue</option><option>Cancelado</option>
+          </select>
+        </div>
+        <div id="lista" class="lista"><div class="carregando">Carregando…</div></div>
+      </div>
+
+      <div class="card nao-imprimir" id="card-rota">
+        <h2>Calcular rotas de entrega</h2>
+        <p class="ajuda" style="margin-top:-6px">Usa os cadastros <b>selecionados</b> acima. As paradas são divididas em viagens e cada viagem é ordenada pelo caminho mais curto.</p>
+        <label for="origem">Ponto de partida (onde ficam as doações)</label>
+        <input type="text" id="origem" placeholder="Ex.: Rua das Flores, 100, Centro">
+        <div class="ajuda" id="dica-origem"></div>
+        <div class="linha">
+          <div><label for="por-viagem">Paradas por viagem (máx. 23)</label>
+            <input type="number" id="por-viagem" min="1" max="23" value="10"></div>
+          <div><label>&nbsp;</label>
+            <label class="consent" style="margin-top:10px"><input type="checkbox" id="voltar" checked><span>Voltar ao ponto de partida no fim</span></label></div>
+        </div>
+        <div id="erro-rota" class="alerta erro oculto"></div>
+        <button class="btn btn-grande" style="margin-top:14px" id="btn-rota">Calcular rotas</button>
+      </div>
+
+      <div id="resultado-rotas"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ---------- Dados enviados pelo servidor ---------- */
+const PAGINA = <?!= JSON.stringify(pagina) ?>;
+const CFG = <?!= config ?>;
+
+/* ---------- Utilidades ---------- */
+const $ = (s, el) => (el || document).querySelector(s);
+const $$ = (s, el) => Array.from((el || document).querySelectorAll(s));
+const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const mostrar = (el, sim) => el.classList.toggle('oculto', !sim);
+function chamar(fn, ...args) {
+  return new Promise((ok, falha) => {
+    google.script.run.withSuccessHandler(ok).withFailureHandler(e => falha(e && e.message ? e : new Error(String(e))))[fn](...args);
+  });
+}
+function msgErro(e) { return String((e && e.message) || e || 'Erro').replace(/^Error:\s*/, ''); }
+
+function mascaraFone(v) {
+  const d = v.replace(/\D/g, '').slice(0, 11);
+  if (d.length <= 2) return d.length ? '(' + d : '';
+  if (d.length <= 6) return '(' + d.slice(0,2) + ') ' + d.slice(2);
+  if (d.length <= 10) return '(' + d.slice(0,2) + ') ' + d.slice(2,6) + '-' + d.slice(6);
+  return '(' + d.slice(0,2) + ') ' + d.slice(2,7) + '-' + d.slice(7);
+}
+function mascaraCep(v) {
+  const d = v.replace(/\D/g, '').slice(0, 8);
+  return d.length > 5 ? d.slice(0,5) + '-' + d.slice(5) : d;
+}
+
+/* ---------- Início ---------- */
+const urlBase = CFG.url || '';
+$('#link-entregas').href = urlBase + '?pagina=entregas';
+$('#link-cadastro').href = urlBase;
+const MODO_CIDADE = !!CFG.cidade;
+if (CFG.nome) { $('#tit-campanha').textContent = CFG.nome; }
+$('#sub-campanha').textContent = 'Cadastro para famílias' + (CFG.area ? ' ' + CFG.area : '') +
+  ' atingidas' + (CFG.evento ? ' ' + CFG.evento : '') + '. Vamos organizar as doações e levar até a sua casa.';
+mostrar($('#campo-cidade'), !MODO_CIDADE);
+if (CFG.contato) $('#contato').textContent = CFG.contato;
+
+if (PAGINA === 'entregas') { mostrar($('#pg-entregas'), true); iniciarEntregas(); }
+else { mostrar($('#pg-cadastro'), true); iniciarCadastro(); }
+
+/* =================== CADASTRO =================== */
+function iniciarCadastro() {
+  const fone = $('#telefone'), cep = $('#cep'), msgCep = $('#msg-cep');
+  fone.addEventListener('input', () => fone.value = mascaraFone(fone.value));
+
+  let ultimoCep = '';
+  cep.addEventListener('input', () => {
+    cep.value = mascaraCep(cep.value);
+    const d = cep.value.replace(/\D/g, '');
+    if (d.length === 8 && d !== ultimoCep) {
+      ultimoCep = d;
+      msgCep.className = 'msg-cep'; msgCep.textContent = 'Buscando endereço…';
+      chamar('buscarCep', d).then(r => {
+        if (!r.ok) { msgCep.className = 'msg-cep ' + (r.manual ? '' : 'erro'); msgCep.textContent = r.erro; return; }
+        if (r.fora) {
+          msgCep.className = 'msg-cep erro';
+          msgCep.textContent = 'Este CEP é de ' + r.cidade + ' - ' + r.uf + '. O cadastro é só para moradores ' + CFG.area + '.';
+          return;
+        }
+        if (r.rua) $('#rua').value = r.rua;
+        if (r.bairro) $('#bairro').value = r.bairro;
+        $('#cidade').value = r.cidade + ' - ' + r.uf;
+        msgCep.className = 'msg-cep ok';
+        msgCep.textContent = '✓ ' + [r.bairro, r.cidade + ' - ' + r.uf].filter(Boolean).join(', ');
+        (r.rua ? $('#numero') : $('#rua')).focus();
+      }).catch(() => { msgCep.className = 'msg-cep'; msgCep.textContent = 'Preencha o endereço normalmente.'; });
+    } else if (d.length < 8) { msgCep.textContent = ''; ultimoCep = ''; }
+  });
+
+  $$('.cat').forEach(cat => {
+    const cb = $('input', cat);
+    cb.addEventListener('change', () => {
+      cat.classList.toggle('ativa', cb.checked);
+      if (cb.checked) $('textarea', cat).focus();
+    });
+  });
+
+  $('#form').addEventListener('input', () => mostrar($('#erro-form'), false));
+  $('#form').addEventListener('submit', ev => {
+    ev.preventDefault();
+    const erro = $('#erro-form');
+    mostrar(erro, false);
+    const val = id => $('#' + id).value.trim();
+    const dados = {
+      nome: val('nome'), telefone: val('telefone'), pessoas: val('pessoas'),
+      prioridade: $$('input[name=prio]:checked').map(i => i.value),
+      cep: val('cep'), rua: val('rua'), numero: val('numero'), complemento: val('complemento'),
+      bairro: val('bairro'), cidade: val('cidade'), referencia: val('referencia'),
+      consentimento: $('#consentimento').checked
+    };
+    let semDescricao = null, algumaCat = false;
+    $$('.cat').forEach(cat => {
+      const k = cat.dataset.cat, marcado = $('input', cat).checked, txt = $('textarea', cat).value.trim();
+      dados[k] = marcado ? txt : '';
+      if (marcado) { algumaCat = true; if (!txt && !semDescricao) semDescricao = cat; }
+    });
+
+    const problemas = [];
+    if (dados.nome.length < 3) problemas.push(['nome', 'Informe o nome completo.']);
+    const nf = dados.telefone.replace(/\D/g, '').length;
+    if (nf < 10) problemas.push(['telefone', 'Informe o telefone com DDD.']);
+    if (dados.cep.replace(/\D/g, '').length !== 8) problemas.push(['cep', 'Informe o CEP (8 números).']);
+    if (!dados.rua) problemas.push(['rua', 'Informe a rua.']);
+    if (!dados.numero) problemas.push(['numero', 'Informe o número (ou escreva s/n).']);
+    if (!dados.bairro) problemas.push(['bairro', 'Informe o bairro.']);
+    if (!MODO_CIDADE && !dados.cidade) problemas.push(['cidade', 'Informe a cidade.']);
+    if (!algumaCat) problemas.push([null, 'Marque pelo menos uma opção do que vocês precisam.']);
+    else if (semDescricao) problemas.push([null, 'Escreva o que precisa em cada opção marcada.']);
+    if (!dados.consentimento) problemas.push(['consentimento', 'Marque a autorização para podermos fazer a entrega.']);
+
+    if (problemas.length) {
+      erro.innerHTML = problemas.map(p => '• ' + esc(p[1])).join('<br>');
+      mostrar(erro, true);
+      const primeiro = problemas[0][0] ? $('#' + problemas[0][0]) : (semDescricao ? $('textarea', semDescricao) : $('.cat'));
+      if (primeiro) { primeiro.scrollIntoView({behavior:'smooth', block:'center'}); primeiro.focus && primeiro.focus({preventScroll:true}); }
+      return;
+    }
+
+    const btn = $('#btn-enviar');
+    btn.disabled = true; btn.textContent = 'Enviando…';
+    chamar('salvarCadastro', dados).then(r => {
+      if (!r.ok) { erro.textContent = r.erro; mostrar(erro, true); return; }
+      $('#num-protocolo').textContent = r.protocolo;
+      mostrar($('#form'), false); mostrar($('#sucesso'), true);
+      window.scrollTo(0, 0);
+    }).catch(e => {
+      erro.textContent = 'Não foi possível enviar agora (' + msgErro(e) + '). Verifique a internet e tente de novo.';
+      mostrar(erro, true);
+    }).finally(() => { btn.disabled = false; btn.textContent = 'Enviar cadastro'; });
+  });
+
+  $('#btn-novo').addEventListener('click', () => {
+    $('#form').reset(); $$('.cat').forEach(c => c.classList.remove('ativa'));
+    $('#msg-cep').textContent = ''; ultimoCep = '';
+    mostrar($('#sucesso'), false); mostrar($('#form'), true); window.scrollTo(0, 0);
+  });
+}
+
+/* =================== ENTREGAS =================== */
+let SENHA = '', DADOS = [], SELECIONADOS = new Set();
+
+function iniciarEntregas() {
+  try { const o = localStorage.getItem('origemEntregas'); if (o) $('#origem').value = o; } catch (e) {}
+  if (!MODO_CIDADE) {
+    $('#origem').placeholder = 'Ex.: Rua das Flores, 100, Centro, Porto Alegre';
+    $('#dica-origem').textContent = 'Inclua a cidade no endereço. Dica: filtre por cidade antes de calcular, para cada viagem ficar numa região.';
+  }
+
+  $('#form-login').addEventListener('submit', ev => {
+    ev.preventDefault();
+    const s = $('#senha').value, btn = $('#btn-login'), erro = $('#erro-login');
+    mostrar(erro, false); btn.disabled = true; btn.textContent = 'Entrando…';
+    chamar('entrar', s).then(() => {
+      SENHA = s;
+      mostrar($('#tela-login'), false); mostrar($('#tela-painel'), true);
+      carregar();
+    }).catch(e => { erro.textContent = msgErro(e); mostrar(erro, true); })
+      .finally(() => { btn.disabled = false; btn.textContent = 'Entrar'; });
+  });
+
+  $('#btn-sair').addEventListener('click', () => { SENHA = ''; DADOS = []; location.href = urlBase + '?pagina=entregas'; });
+  $('#btn-atualizar').addEventListener('click', carregar);
+  ['#f-status', '#f-cat', '#f-cidade', '#f-bairro'].forEach(s => $(s).addEventListener('change', () => { SELECIONADOS.clear(); desenhar(); }));
+  $('#f-cidade').addEventListener('change', () => { preencherBairros(); desenhar(); });
+  $('#f-busca').addEventListener('input', desenhar);
+  $('#sel-todos').addEventListener('change', e => {
+    filtrados().forEach(r => e.target.checked ? SELECIONADOS.add(r.protocolo) : SELECIONADOS.delete(r.protocolo));
+    desenhar();
+  });
+  $('#lista').addEventListener('change', e => {
+    if (e.target.matches('input[data-p]')) {
+      const p = e.target.dataset.p;
+      e.target.checked ? SELECIONADOS.add(p) : SELECIONADOS.delete(p);
+      e.target.closest('.item').classList.toggle('sel', e.target.checked);
+      atualizarContagem();
+    }
+  });
+  $('#novo-status').addEventListener('change', e => {
+    const st = e.target.value; e.target.value = '';
+    if (st) mudarStatus([...SELECIONADOS], st);
+  });
+  $('#btn-rota').addEventListener('click', calcular);
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-acao]');
+    if (!b) return;
+    if (b.dataset.acao === 'status-viagem') mudarStatus(b.dataset.ps.split(','), b.dataset.st);
+    if (b.dataset.acao === 'imprimir') window.print();
+  });
+}
+
+function carregar() {
+  $('#lista').innerHTML = '<div class="carregando">Carregando…</div>';
+  return chamar('listarCadastros', SENHA).then(d => {
+    DADOS = d || [];
+    preencherBairros();
+    const cidades = [...new Set(DADOS.map(cidadeDe).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt'));
+    const cAtual = $('#f-cidade').value;
+    $('#f-cidade').innerHTML = '<option value="">Todas</option>' + cidades.map(c => '<option' + (c === cAtual ? ' selected' : '') + '>' + esc(c) + '</option>').join('');
+    mostrar($('#box-cidade'), cidades.length > 1);
+    const existentes = new Set(DADOS.map(r => r.protocolo));
+    [...SELECIONADOS].forEach(p => { if (!existentes.has(p)) SELECIONADOS.delete(p); });
+    desenharResumo(); desenhar();
+  }).catch(e => { $('#lista').innerHTML = '<div class="alerta erro">' + esc(msgErro(e)) + '</div>'; });
+}
+
+function cidadeDe(r) {
+  const c = String(r.cidade || '').trim();
+  return c ? c + (r.uf && !c.includes(' - ') ? ' - ' + r.uf : '') : '';
+}
+function preencherBairros() {
+  const cid = $('#f-cidade').value;
+  const bairros = [...new Set(DADOS.filter(r => !cid || cidadeDe(r) === cid).map(r => String(r.bairro || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt'));
+  const atual = $('#f-bairro').value;
+  $('#f-bairro').innerHTML = '<option value="">Todos</option>' + bairros.map(b => '<option' + (b === atual ? ' selected' : '') + '>' + esc(b) + '</option>').join('');
+}
+
+function desenharResumo() {
+  const cont = st => DADOS.filter(r => r.status === st).length;
+  const pend = DADOS.filter(r => r.status === 'Pendente');
+  const porCat = c => pend.filter(r => String(r.categorias).includes(c)).length;
+  const caixas = [
+    ['Cadastros', DADOS.length], ['Pendentes', cont('Pendente')], ['Em rota', cont('Em rota')], ['Entregues', cont('Entregue')],
+    ['🧼 Higiene*', porCat('Higiene')], ['👕 Roupas*', porCat('Roupas')], ['🍚 Alimentos*', porCat('Alimentos')], ['🛏️ Casa*', porCat('Itens de casa')]
+  ];
+  $('#resumo').innerHTML = caixas.map(c => '<div class="num"><b>' + c[1] + '</b><span>' + esc(c[0]) + '</span></div>').join('') +
+    '<div class="ajuda" style="grid-column:1/-1">* famílias pendentes que pediram cada categoria</div>';
+}
+
+function filtrados() {
+  const st = $('#f-status').value, cat = $('#f-cat').value, bairro = $('#f-bairro').value, cid = $('#f-cidade').value;
+  const q = $('#f-busca').value.trim().toLowerCase();
+  return DADOS.filter(r =>
+    (!st || r.status === st) &&
+    (!cat || String(r.categorias).includes(cat)) &&
+    (!cid || cidadeDe(r) === cid) &&
+    (!bairro || String(r.bairro).trim() === bairro) &&
+    (!q || [r.protocolo, r.nome, r.telefone, r.rua, r.bairro, r.cidade, r.referencia, r.higiene, r.roupas, r.alimentos, r.itens_de_casa].join(' ').toLowerCase().includes(q))
+  ).sort((a, b) => (b.prioridade ? 1 : 0) - (a.prioridade ? 1 : 0) || String(a.protocolo).localeCompare(String(b.protocolo)));
+}
+
+function enderecoTxt(r) {
+  return [r.rua + (r.numero ? ', ' + r.numero : ''), r.complemento, r.bairro, MODO_CIDADE ? '' : cidadeDe(r)].filter(x => String(x || '').trim()).join(' – ');
+}
+function linkWhats(fone) {
+  const d = String(fone || '').replace(/\D/g, '');
+  return d.length >= 10 ? 'https://wa.me/55' + d : '';
+}
+function necessidadesHtml(r) {
+  return [['🧼', r.higiene], ['👕', r.roupas], ['🍚', r.alimentos], ['🛏️', r.itens_de_casa]]
+    .filter(n => String(n[1] || '').trim()).map(n => '<div>' + n[0] + ' ' + esc(n[1]) + '</div>').join('');
+}
+
+function desenhar() {
+  const lista = filtrados();
+  if (!lista.length) {
+    $('#lista').innerHTML = '<div class="carregando">Nenhum cadastro com esses filtros.</div>';
+  } else {
+    $('#lista').innerHTML = lista.map(r => {
+      const sel = SELECIONADOS.has(r.protocolo);
+      const w = linkWhats(r.telefone);
+      const loc = r.lat == null ? '<span class="tag semloc">sem localização no mapa</span>'
+                : (r.localizacao === 'Aproximada' ? '<span class="tag aprox">local aproximado</span>' : '');
+      return '<div class="item' + (sel ? ' sel' : '') + '">' +
+        '<input type="checkbox" data-p="' + esc(r.protocolo) + '"' + (sel ? ' checked' : '') + ' aria-label="Selecionar ' + esc(r.nome) + '">' +
+        '<div>' +
+          '<div class="top"><span class="nome">' + esc(r.nome) + '</span>' +
+            '<span class="tag">#' + esc(r.protocolo) + '</span>' +
+            '<span class="tag ' + esc(r.status === 'Em rota' ? 'em-rota' : r.status) + '">' + esc(r.status) + '</span>' +
+            (r.prioridade ? '<span class="tag prio">' + esc(r.prioridade) + '</span>' : '') + loc +
+          '</div>' +
+          '<div class="end">📍 ' + esc(enderecoTxt(r)) + (r.referencia ? ' · <i>' + esc(r.referencia) + '</i>' : '') + '</div>' +
+          '<div class="end">📞 ' + esc(r.telefone) + (r.pessoas_na_casa ? ' · 👥 ' + esc(r.pessoas_na_casa) + ' pessoas' : '') + ' · ' + esc(r.data) + '</div>' +
+          '<div class="nec">' + necessidadesHtml(r) + '</div>' +
+          (r.obs_entrega ? '<div class="ajuda">⚠️ ' + esc(r.obs_entrega) + '</div>' : '') +
+          '<div class="acoes-item">' + (w ? '<a href="' + esc(w) + '" target="_blank" rel="noopener">WhatsApp</a>' : '') +
+            (r.lat != null ? '<a href="https://www.google.com/maps/search/?api=1&query=' + r.lat + ',' + r.lng + '" target="_blank" rel="noopener">Ver no mapa</a>' : '') +
+          '</div>' +
+        '</div></div>';
+    }).join('');
+  }
+  $('#sel-todos').checked = lista.length > 0 && lista.every(r => SELECIONADOS.has(r.protocolo));
+  atualizarContagem();
+}
+
+function atualizarContagem() {
+  $('#contagem').textContent = filtrados().length + ' na lista · ' + SELECIONADOS.size + ' selecionado(s)';
+  $('#btn-rota').textContent = SELECIONADOS.size ? 'Calcular rotas para ' + SELECIONADOS.size + ' entrega(s)' : 'Calcular rotas';
+}
+
+function mudarStatus(protocolos, status) {
+  if (!protocolos.length) { alertaTopo('Selecione pelo menos um cadastro.', 'aviso'); return; }
+  chamar('marcarStatus', SENHA, protocolos, status, '').then(r => {
+    alertaTopo(r.alterados + ' cadastro(s) marcado(s) como "' + status + '".', 'ok');
+    if (status !== 'Pendente') protocolos.forEach(p => SELECIONADOS.delete(p));
+    carregar();
+  }).catch(e => alertaTopo(msgErro(e), 'erro'));
+}
+
+function alertaTopo(txt, tipo) {
+  let el = $('#alerta-topo');
+  if (!el) { el = document.createElement('div'); el.id = 'alerta-topo'; el.style.cssText = 'position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:9;max-width:90vw;box-shadow:0 4px 14px rgba(0,0,0,.15)'; document.body.appendChild(el); }
+  el.className = 'alerta ' + tipo; el.textContent = txt; mostrar(el, true);
+  clearTimeout(el._t); el._t = setTimeout(() => mostrar(el, false), 4000);
+}
+
+function calcular() {
+  const erro = $('#erro-rota'); mostrar(erro, false);
+  const origem = $('#origem').value.trim();
+  if (!SELECIONADOS.size) { erro.textContent = 'Selecione na lista os cadastros que vão entrar nas rotas.'; mostrar(erro, true); return; }
+  if (!origem) { erro.textContent = 'Informe o ponto de partida.'; mostrar(erro, true); $('#origem').focus(); return; }
+  try { localStorage.setItem('origemEntregas', origem); } catch (e) {}
+  const btn = $('#btn-rota'); btn.disabled = true; btn.textContent = 'Calculando… (pode levar alguns segundos)';
+  chamar('calcularRotas', SENHA, {
+    origem, protocolos: [...SELECIONADOS],
+    porViagem: parseInt($('#por-viagem').value, 10) || 10,
+    voltar: $('#voltar').checked
+  }).then(desenharRotas)
+    .catch(e => { erro.textContent = msgErro(e); mostrar(erro, true); })
+    .finally(() => { btn.disabled = false; atualizarContagem(); });
+}
+
+function desenharRotas(res) {
+  const out = $('#resultado-rotas');
+  let html = '<div class="card"><div class="barra" style="margin-top:0"><h2 style="margin:0">Rotas calculadas</h2><span class="esp"></span>' +
+    '<button class="btn-sec btn-peq nao-imprimir" data-acao="imprimir">🖨️ Imprimir</button></div>' +
+    '<div class="ajuda">Partida: ' + esc(res.origem.endereco) + '</div>';
+  if (res.semLocalizacao && res.semLocalizacao.length) {
+    html += '<div class="alerta aviso">Não foi possível localizar no mapa: ' +
+      res.semLocalizacao.map(r => esc(r.nome) + ' (#' + esc(r.protocolo) + ')').join(', ') +
+      '. Confira o endereço na planilha ou entregue por fora da rota.</div>';
+  }
+  if (!res.viagens.length) html += '<p>Nenhuma parada com localização.</p>';
+  const totKm = res.viagens.reduce((s, v) => s + v.distanciaKm, 0);
+  if (res.viagens.length > 1) html += '<p class="ajuda">' + res.viagens.length + ' viagens · total aprox. ' + totKm.toFixed(1) + ' km</p>';
+
+  res.viagens.forEach(v => {
+    const ps = v.paradas.map(p => p.protocolo).join(',');
+    html += '<div class="viagem"><h3>Viagem ' + v.numero + ' — ' + v.paradas.length + ' entrega(s)</h3>' +
+      '<div class="info">' + (v.estimado ? 'Estimativa' : 'Pelas ruas') + ': ' + v.distanciaKm.toFixed(1) + ' km · ~' + formatarTempo(v.tempoMin) + ' dirigindo (sem contar as paradas)' +
+      (v.estimado ? ' — o Google não respondeu; ordem por proximidade' : '') + '</div>' +
+      '<div class="links nao-imprimir">' + v.links.map((l, i) => '<a href="' + esc(l) + '" target="_blank" rel="noopener">🗺️ Abrir no Google Maps' + (v.links.length > 1 ? ' (trecho ' + (i + 1) + ' de ' + v.links.length + ')' : '') + '</a>').join('') + '</div>' +
+      '<ol><li class="partida"><b>Saída:</b> ' + esc(res.origem.endereco) + '</li>' +
+      v.paradas.map(p => '<li><b>' + esc(p.nome) + '</b> <span class="tag">#' + esc(p.protocolo) + '</span>' + (p.prioridade ? ' <span class="tag prio">' + esc(p.prioridade) + '</span>' : '') +
+        '<br>📍 ' + esc(enderecoTxt(p)) + (p.referencia ? ' · <i>' + esc(p.referencia) + '</i>' : '') +
+        '<br>📞 ' + esc(p.telefone) + '<div class="nec" style="margin-top:4px">' + necessidadesHtml(p) + '</div></li>').join('') +
+      (($('#voltar').checked) ? '<li class="partida"><b>Retorno:</b> ' + esc(res.origem.endereco) + '</li>' : '') +
+      '</ol><div class="barra nao-imprimir">' +
+        '<button class="btn-sec btn-peq" data-acao="status-viagem" data-st="Em rota" data-ps="' + esc(ps) + '">Marcar viagem como "Em rota"</button>' +
+        '<button class="btn-ok btn-peq" data-acao="status-viagem" data-st="Entregue" data-ps="' + esc(ps) + '">Marcar viagem como "Entregue"</button>' +
+      '</div></div>';
+  });
+  html += '<p class="ajuda nao-imprimir">Dica: o Google Maps no celular aceita até 10 pontos por link; viagens maiores aparecem em trechos.</p></div>';
+  out.innerHTML = html;
+  out.scrollIntoView({behavior: 'smooth'});
+}
+function formatarTempo(m) { return m >= 60 ? Math.floor(m / 60) + 'h' + String(m % 60).padStart(2, '0') : m + ' min'; }
+</script>
+</body>
+</html>

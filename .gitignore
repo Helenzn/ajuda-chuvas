@@ -1,0 +1,11 @@
+# Nunca versionar dados das famílias
+*.csv
+*.xlsx
+*.xls
+*.ods
+dados/
+exportacoes/
+
+# Configuração local do clasp (contém IDs do projeto)
+.clasp.json
+.clasprc.json
